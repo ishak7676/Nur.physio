@@ -154,6 +154,7 @@ def _choose_customer(ctx: typer.Context) -> int:
 def _collect_invoice_items(ctx: typer.Context) -> list[InvoiceItem]:
     items: list[InvoiceItem] = []
     typer.echo("Fügen Sie Leistungen hinzu. Lassen Sie den Namen leer, um zu beenden.")
+    typer.echo("Sie können nach Name, Leistungsnummer oder ID suchen.")
     while True:
         name_or_code = typer.prompt("Leistung oder Nummer", default="")
         if not name_or_code:
@@ -223,7 +224,8 @@ def list_invoices(ctx: typer.Context) -> None:
         return
     for invoice in invoices:
         typer.echo(
-            f"[{invoice.id}] {invoice.invoice_number} – {invoice.customer.last_name} ({invoice.issue_date.isoformat()}) {invoice.total:.2f} €"
+            f"[{invoice.id}] {invoice.invoice_number} – {invoice.customer.last_name} "
+            f"({invoice.issue_date.isoformat()}) {invoice.total:.2f} €"
         )
 
 

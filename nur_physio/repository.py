@@ -1,6 +1,8 @@
 """Datenzugriffsschicht für das Nur.physio Rechnungswerkzeug."""
 from __future__ import annotations
 
+import math
+import sqlite3
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
@@ -161,17 +163,40 @@ class Repository:
         code: Optional[str] = None,
         description: Optional[str] = None,
     ) -> Service:
+        name = name.strip()
+        if isinstance(code, str):
+            code = code.strip() or None
+        if isinstance(description, str):
+            description = description.strip() or None
+
         with get_connection(self.db_path) as connection:
-            cursor = connection.execute(
-                """
-                INSERT INTO services (name, unit_price, code, description)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(name) DO UPDATE SET unit_price = excluded.unit_price,
-                                            code = COALESCE(excluded.code, services.code),
-                                            description = COALESCE(excluded.description, services.description)
-                """,
-                (name, unit_price, code, description),
-            )
+            cursor = connection.cursor()
+            try:
+                cursor.execute(
+                    """
+                    INSERT INTO services (name, unit_price, code, description)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(name) DO UPDATE SET unit_price = excluded.unit_price,
+                                                code = COALESCE(excluded.code, services.code),
+                                                description = COALESCE(excluded.description, services.description)
+                    """,
+                    (name, unit_price, code, description),
+                )
+            except sqlite3.IntegrityError as error:
+                if code:
+                    existing = self.get_service_by_code(code)
+                    cursor.execute(
+                        """
+                        UPDATE services
+                        SET name = ?, unit_price = ?, description = COALESCE(?, description)
+                        WHERE id = ?
+                        """,
+                        (name, unit_price, description, existing.id),
+                    )
+                    connection.commit()
+                    return self.get_service(existing.id)
+                raise error
+
             connection.commit()
             service_id = cursor.lastrowid or self.get_service_by_name(name).id
         return self.get_service(service_id)
@@ -198,11 +223,52 @@ class Repository:
                 raise ValueError(f"Leistung '{name}' nicht gefunden.")
             return Service(**row)
 
-    def find_service(self, keyword: str) -> Optional[Service]:
+    def get_service_by_code(self, code: str) -> Service:
         with get_connection(self.db_path) as connection:
             cursor = connection.execute(
-                "SELECT * FROM services WHERE name = ? OR code = ?",
+                "SELECT * FROM services WHERE code = ?",
+                (code,),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                raise ValueError(f"Leistung mit Code '{code}' nicht gefunden.")
+            return Service(**row)
+
+    def find_service(self, keyword: str) -> Optional[Service]:
+        keyword = keyword.strip()
+        if not keyword:
+            return None
+
+        with get_connection(self.db_path) as connection:
+            if keyword.isdigit():
+                cursor = connection.execute(
+                    "SELECT * FROM services WHERE id = ?",
+                    (int(keyword),),
+                )
+                row = cursor.fetchone()
+                if row:
+                    return Service(**row)
+
+            cursor = connection.execute(
+                """
+                SELECT * FROM services
+                WHERE LOWER(name) = LOWER(?)
+                   OR LOWER(COALESCE(code, '')) = LOWER(?)
+                """,
                 (keyword, keyword),
+            )
+            row = cursor.fetchone()
+            if row:
+                return Service(**row)
+
+            cursor = connection.execute(
+                """
+                SELECT * FROM services
+                WHERE LOWER(name) LIKE LOWER(?)
+                ORDER BY name
+                LIMIT 1
+                """,
+                (f"%{keyword}%",),
             )
             row = cursor.fetchone()
             return Service(**row) if row else None
@@ -354,15 +420,44 @@ class Repository:
 
         created = 0
         for _, row in dataframe.iterrows():
-            name = str(row[name_column]).strip()
+            raw_name = row[name_column]
+            if raw_name is None or (isinstance(raw_name, float) and math.isnan(raw_name)):
+                continue
+            name = str(raw_name).strip()
             if not name:
                 continue
-            price = float(row[price_column])
-            code = str(row[code_column]).strip() if code_column else None
-            description = (
-                str(row[description_column]).strip() if description_column else None
-            )
-            self.create_service(name=name, unit_price=price, code=code or None, description=description or None)
+
+            raw_price = row[price_column]
+            if raw_price is None or (isinstance(raw_price, float) and math.isnan(raw_price)):
+                continue
+
+            if isinstance(raw_price, str):
+                raw_price = raw_price.replace("€", "").replace(",", ".").strip()
+
+            try:
+                price = float(raw_price)
+            except (TypeError, ValueError):
+                continue
+
+            code = None
+            if code_column:
+                raw_code = row[code_column]
+                if isinstance(raw_code, str):
+                    code_candidate = raw_code.strip()
+                    code = code_candidate or None
+                elif raw_code is not None and not (isinstance(raw_code, float) and math.isnan(raw_code)):
+                    code = str(raw_code)
+
+            description = None
+            if description_column:
+                raw_description = row[description_column]
+                if isinstance(raw_description, str):
+                    description_candidate = raw_description.strip()
+                    description = description_candidate or None
+                elif raw_description is not None and not (isinstance(raw_description, float) and math.isnan(raw_description)):
+                    description = str(raw_description)
+
+            self.create_service(name=name, unit_price=price, code=code, description=description)
             created += 1
         return created
 

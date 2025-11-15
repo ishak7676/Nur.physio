@@ -51,9 +51,10 @@ python -m nur_physio create-invoice
 ```
 
 Sie wählen dabei die Filiale, den Kunden sowie die abzurechnenden Leistungen aus.
-Nicht vorhandene Leistungen können direkt angelegt und gespeichert werden. Nach dem
-Abschluss wird die Rechnung inklusive Zahlungsziel gespeichert und als Textdatei im
-Ordner `invoices/` abgelegt.
+Sie können Leistungen per Namen, Leistungsnummer oder ID auswählen; falls eine
+Leistung fehlt, erfassen Sie sie direkt und sie steht beim nächsten Mal automatisch
+zur Verfügung. Nach dem Abschluss wird die Rechnung inklusive Zahlungsziel
+gespeichert und als Textdatei im Ordner `invoices/` abgelegt.
 
 Bereits angelegte Rechnungen lassen sich über
 
