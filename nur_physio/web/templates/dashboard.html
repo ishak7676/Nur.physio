@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Übersicht – Nur.physio{% endblock %}
+{% block content %}
+<h2>Übersicht</h2>
+<div class="grid">
+    <article class="card">
+        <h3>Filialen</h3>
+        <p class="metric">{{ branch_count }}</p>
+        <a class="button" href="/branches">Verwalten</a>
+    </article>
+    <article class="card">
+        <h3>Kunden</h3>
+        <p class="metric">{{ customer_count }}</p>
+        <a class="button" href="/customers">Verwalten</a>
+    </article>
+    <article class="card">
+        <h3>Leistungen</h3>
+        <p class="metric">{{ service_count }}</p>
+        <a class="button" href="/services">Verwalten</a>
+    </article>
+    <article class="card">
+        <h3>Rechnungen</h3>
+        <p class="metric">{{ invoice_count }}</p>
+        <a class="button" href="/invoices">Anzeigen</a>
+    </article>
+</div>
+<p>Starten Sie über die Navigation, um Stammdaten zu pflegen oder neue Rechnungen zu erstellen.</p>
+{% endblock %}

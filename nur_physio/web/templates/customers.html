@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Kunden – Nur.physio{% endblock %}
+{% block content %}
+<h2>Kunden</h2>
+<section class="layout">
+    <div class="layout-main">
+        {% if customers %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Kontakt</th>
+                    <th>Adresse</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.last_name }}, {{ customer.first_name }}</td>
+                    <td>
+                        {% if customer.email %}<a href="mailto:{{ customer.email }}">{{ customer.email }}</a><br>{% endif %}
+                        {% if customer.phone %}{{ customer.phone }}{% endif %}
+                    </td>
+                    <td>
+                        {{ customer.street or '-' }}<br>
+                        {{ customer.postal_code or '' }} {{ customer.city or '' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">Noch keine Kunden gespeichert.</p>
+        {% endif %}
+    </div>
+    <aside class="layout-side">
+        <h3>Neuer Kunde</h3>
+        <form method="post" class="form">
+            <label>Vorname<input type="text" name="first_name" required></label>
+            <label>Nachname<input type="text" name="last_name" required></label>
+            <label>E-Mail<input type="email" name="email"></label>
+            <label>Telefon<input type="text" name="phone"></label>
+            <label>Straße<input type="text" name="street"></label>
+            <label>Postleitzahl<input type="text" name="postal_code"></label>
+            <label>Ort<input type="text" name="city"></label>
+            <button type="submit">Speichern</button>
+        </form>
+    </aside>
+</section>
+{% endblock %}

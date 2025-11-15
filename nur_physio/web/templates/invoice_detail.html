@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Rechnung {{ invoice.invoice_number }} – Nur.physio{% endblock %}
+{% block content %}
+<a class="back-link" href="/invoices">&larr; Zurück</a>
+<h2>Rechnung {{ invoice.invoice_number }}</h2>
+<section class="invoice-meta">
+    <div>
+        <h3>Filiale</h3>
+        <p>
+            {{ invoice.branch.name }}<br>
+            {{ invoice.branch.street or '' }}<br>
+            {{ invoice.branch.postal_code or '' }} {{ invoice.branch.city or '' }}
+        </p>
+    </div>
+    <div>
+        <h3>Kunde</h3>
+        <p>
+            {{ invoice.customer.first_name }} {{ invoice.customer.last_name }}<br>
+            {{ invoice.customer.street or '' }}<br>
+            {{ invoice.customer.postal_code or '' }} {{ invoice.customer.city or '' }}
+        </p>
+    </div>
+    <div>
+        <h3>Daten</h3>
+        <p>
+            Ausgestellt: {{ invoice.issue_date }}<br>
+            Fällig bis: {{ invoice.due_date }}
+        </p>
+    </div>
+</section>
+<table>
+    <thead>
+        <tr>
+            <th>Leistung</th>
+            <th>Menge</th>
+            <th>Einzelpreis</th>
+            <th>Gesamt</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in invoice.items %}
+        <tr>
+            <td>
+                <strong>{{ item.service.name }}</strong><br>
+                {% if item.service.code %}<small>Code: {{ item.service.code }}</small>{% endif %}
+                {% if item.service.description %}<div class="muted">{{ item.service.description }}</div>{% endif %}
+            </td>
+            <td>{{ '%.2f'|format(item.quantity) }}</td>
+            <td>{{ '%.2f'|format(item.unit_price) }} €</td>
+            <td>{{ '%.2f'|format(item.line_total) }} €</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="3" class="align-right">Summe</th>
+            <th>{{ '%.2f'|format(invoice.total) }} €</th>
+        </tr>
+    </tfoot>
+</table>
+{% if invoice.notes %}
+<section class="notes">
+    <h3>Hinweise</h3>
+    <p>{{ invoice.notes }}</p>
+</section>
+{% endif %}
+
+<section class="invoice-canvas" aria-labelledby="canvas-heading">
+    <div class="invoice-canvas__header">
+        <h3 id="canvas-heading">Canvas-Vorschau</h3>
+        <p class="muted">Laden Sie eine gerenderte Bildversion der Rechnung herunter.</p>
+    </div>
+    {% set invoice_payload = {
+        "invoice_number": invoice.invoice_number,
+        "issue_date": invoice.issue_date.isoformat(),
+        "due_date": invoice.due_date.isoformat(),
+        "branch": {
+            "name": invoice.branch.name,
+            "street": invoice.branch.street,
+            "postal_code": invoice.branch.postal_code,
+            "city": invoice.branch.city
+        },
+        "customer": {
+            "first_name": invoice.customer.first_name,
+            "last_name": invoice.customer.last_name,
+            "street": invoice.customer.street,
+            "postal_code": invoice.customer.postal_code,
+            "city": invoice.customer.city
+        },
+        "items": [
+            {
+                "name": item.service.name,
+                "code": item.service.code,
+                "description": item.service.description,
+                "quantity": '%.2f'|format(item.quantity),
+                "unit_price": '%.2f'|format(item.unit_price),
+                "line_total": '%.2f'|format(item.line_total)
+            }
+            for item in invoice.items
+        ],
+        "total": '%.2f'|format(invoice.total),
+        "notes": invoice.notes
+    } %}
+    <canvas
+        id="invoice-canvas"
+        width="794"
+        height="1123"
+        role="img"
+        aria-label="Gerenderte Rechnung"
+        data-invoice='{{ invoice_payload | tojson }}'
+    ></canvas>
+    <div class="invoice-canvas__actions">
+        <button type="button" id="download-invoice-image">Als PNG herunterladen</button>
+    </div>
+</section>
+{% endblock %}
