@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Nur.physio{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<header class="navbar">
+    <div class="container">
+        <h1 class="brand"><a href="/">Nur.physio</a></h1>
+        <nav>
+            <a href="/branches">Filialen</a>
+            <a href="/customers">Kunden</a>
+            <a href="/services">Leistungen</a>
+            <a href="/invoices">Rechnungen</a>
+        </nav>
+    </div>
+</header>
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+<footer class="footer">
+    <div class="container">
+        <small>Nur.physio &mdash; Browserbasierte Verwaltung für Ihre Praxis.</small>
+    </div>
+</footer>
+<script src="/static/app.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

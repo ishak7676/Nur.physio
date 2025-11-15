@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Rechnung – Voraussetzungen{% endblock %}
+{% block content %}
+<a class="back-link" href="/invoices">&larr; Zurück</a>
+<h2>Rechnung nicht möglich</h2>
+<p class="empty-state">Zum Erstellen einer Rechnung benötigen Sie mindestens eine Filiale, einen Kunden und eine Leistung.</p>
+<ul class="checklist">
+    <li class="{{ 'ok' if branches else 'missing' }}">Filiale vorhanden</li>
+    <li class="{{ 'ok' if customers else 'missing' }}">Kunde vorhanden</li>
+    <li class="{{ 'ok' if services else 'missing' }}">Leistung vorhanden</li>
+</ul>
+<p>Bitte legen Sie die fehlenden Stammdaten an und versuchen Sie es anschließend erneut.</p>
+{% endblock %}

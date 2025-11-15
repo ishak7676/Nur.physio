@@ -1,6 +1,7 @@
 """Kommandozeilenoberfläche für die Nur.physio Buchhaltung."""
 from __future__ import annotations
 
+import os
 from datetime import date
 from pathlib import Path
 from typing import Optional
@@ -214,6 +215,23 @@ def create_invoice(
     if export:
         path = save_invoice_text(invoice, output_dir=output_dir)
         typer.echo(f"Rechnungsdokument gespeichert unter: {path}")
+
+
+@app.command()
+def web(
+    ctx: typer.Context,
+    host: str = typer.Option("127.0.0.1", help="Hostname oder IP-Adresse"),
+    port: int = typer.Option(8000, help="Port für den Webserver"),
+    reload: bool = typer.Option(False, help="Automatischen Reload für Entwicklung aktivieren."),
+) -> None:
+    """Startet die Browseroberfläche."""
+    from uvicorn import run as uvicorn_run
+
+    from .webapp import DB_ENV_VAR
+
+    if ctx.obj.db_path:
+        os.environ[DB_ENV_VAR] = str(ctx.obj.db_path)
+    uvicorn_run("nur_physio.webapp:app", host=host, port=port, reload=reload)
 
 
 @app.command()

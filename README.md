@@ -1,8 +1,9 @@
 # Nur.physio Buchhaltungs- und Rechnungsprogramm
 
-Dieses Projekt stellt eine leichtgewichtige Kommandozeilen-Anwendung bereit, mit der Sie
+Dieses Projekt stellt eine leichtgewichtige Verwaltungsanwendung bereit, mit der Sie
 Filialen, Kunden, Leistungen und private Rechnungen für Ihre Physiotherapie-Praxis
-verwalten können. Die Daten werden in einer SQLite-Datenbank gespeichert und Rechnungen
+verwalten können. Neben der Kommandozeile steht nun auch eine komfortable Weboberfläche
+zur Verfügung. Die Daten werden in einer SQLite-Datenbank gespeichert und Rechnungen
 können als Textdateien exportiert werden.
 
 ## Voraussetzungen
@@ -41,6 +42,30 @@ Leistungsnummer (`Code`) und Beschreibung.
 ```bash
 python -m nur_physio import-services leistungen.xlsx
 ```
+
+## Browseroberfläche starten
+
+Statt die Funktionen ausschließlich über die Kommandozeile aufzurufen, können Sie jetzt
+eine Weboberfläche starten und alle Stammdaten sowie Rechnungen bequem im Browser
+pflegen:
+
+```bash
+python -m nur_physio web --host 0.0.0.0 --port 8000
+```
+
+Anschließend rufen Sie im Browser `http://localhost:8000` auf. Der Server verwendet
+standardmäßig dieselbe Datenbank wie die Kommandozeilenbefehle. Möchten Sie eine andere
+Datei nutzen, übergeben Sie `--db pfad/zur/datei.db` an den Befehl oben; die Weboberfläche
+übernimmt den Pfad automatisch.
+
+In der Web-App können Sie
+
+* Filialen, Kunden und Leistungen erfassen und einsehen,
+* Rechnungen mit beliebig vielen Positionen erstellen,
+* bestehende Rechnungen einsehen und als Nachschlagewerk nutzen.
+
+Alle Eingaben werden sofort gespeichert, sodass Ihre Daten sowohl in der Weboberfläche
+als auch in der Kommandozeile verfügbar sind.
 
 ## Rechnungen erstellen
 

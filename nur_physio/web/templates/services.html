@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Leistungen – Nur.physio{% endblock %}
+{% block content %}
+<h2>Leistungen</h2>
+<section class="layout">
+    <div class="layout-main">
+        {% if services %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Bezeichnung</th>
+                    <th>Nummer</th>
+                    <th>Preis</th>
+                    <th>Beschreibung</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td>{{ service.name }}</td>
+                    <td>{{ service.code or '-' }}</td>
+                    <td>{{ '%.2f'|format(service.unit_price) }} €</td>
+                    <td>{{ service.description or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">Noch keine Leistungen hinterlegt.</p>
+        {% endif %}
+    </div>
+    <aside class="layout-side">
+        <h3>Neue Leistung</h3>
+        <form method="post" class="form">
+            <label>Bezeichnung<input type="text" name="name" required></label>
+            <label>Preis in €<input type="number" step="0.01" name="unit_price" required></label>
+            <label>Leistungsnummer<input type="text" name="code"></label>
+            <label>Beschreibung<textarea name="description" rows="3"></textarea></label>
+            <button type="submit">Speichern</button>
+        </form>
+    </aside>
+</section>
+{% endblock %}

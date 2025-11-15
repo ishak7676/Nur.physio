@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Filialen – Nur.physio{% endblock %}
+{% block content %}
+<h2>Filialen</h2>
+<section class="layout">
+    <div class="layout-main">
+        {% if branches %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Adresse</th>
+                    <th>Kontakt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for branch in branches %}
+                <tr>
+                    <td>{{ branch.name }}</td>
+                    <td>
+                        {{ branch.street or '-' }}<br>
+                        {{ branch.postal_code or '' }} {{ branch.city or '' }}
+                    </td>
+                    <td>
+                        {% if branch.email %}<a href="mailto:{{ branch.email }}">{{ branch.email }}</a><br>{% endif %}
+                        {% if branch.phone %}{{ branch.phone }}{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">Noch keine Filiale angelegt.</p>
+        {% endif %}
+    </div>
+    <aside class="layout-side">
+        <h3>Neue Filiale</h3>
+        <form method="post" class="form">
+            <label>Name<input type="text" name="name" required></label>
+            <label>Straße<input type="text" name="street"></label>
+            <label>Postleitzahl<input type="text" name="postal_code"></label>
+            <label>Ort<input type="text" name="city"></label>
+            <label>E-Mail<input type="email" name="email"></label>
+            <label>Telefon<input type="text" name="phone"></label>
+            <button type="submit">Speichern</button>
+        </form>
+    </aside>
+</section>
+{% endblock %}
