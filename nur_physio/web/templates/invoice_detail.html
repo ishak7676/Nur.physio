@@ -64,4 +64,53 @@
     <p>{{ invoice.notes }}</p>
 </section>
 {% endif %}
+
+<section class="invoice-canvas" aria-labelledby="canvas-heading">
+    <div class="invoice-canvas__header">
+        <h3 id="canvas-heading">Canvas-Vorschau</h3>
+        <p class="muted">Laden Sie eine gerenderte Bildversion der Rechnung herunter.</p>
+    </div>
+    {% set invoice_payload = {
+        "invoice_number": invoice.invoice_number,
+        "issue_date": invoice.issue_date.isoformat(),
+        "due_date": invoice.due_date.isoformat(),
+        "branch": {
+            "name": invoice.branch.name,
+            "street": invoice.branch.street,
+            "postal_code": invoice.branch.postal_code,
+            "city": invoice.branch.city
+        },
+        "customer": {
+            "first_name": invoice.customer.first_name,
+            "last_name": invoice.customer.last_name,
+            "street": invoice.customer.street,
+            "postal_code": invoice.customer.postal_code,
+            "city": invoice.customer.city
+        },
+        "items": [
+            {
+                "name": item.service.name,
+                "code": item.service.code,
+                "description": item.service.description,
+                "quantity": '%.2f'|format(item.quantity),
+                "unit_price": '%.2f'|format(item.unit_price),
+                "line_total": '%.2f'|format(item.line_total)
+            }
+            for item in invoice.items
+        ],
+        "total": '%.2f'|format(invoice.total),
+        "notes": invoice.notes
+    } %}
+    <canvas
+        id="invoice-canvas"
+        width="794"
+        height="1123"
+        role="img"
+        aria-label="Gerenderte Rechnung"
+        data-invoice='{{ invoice_payload | tojson }}'
+    ></canvas>
+    <div class="invoice-canvas__actions">
+        <button type="button" id="download-invoice-image">Als PNG herunterladen</button>
+    </div>
+</section>
 {% endblock %}

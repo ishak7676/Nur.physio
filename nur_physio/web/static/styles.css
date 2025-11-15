@@ -196,6 +196,54 @@ table thead {
     border-radius: 8px;
 }
 
+.invoice-canvas {
+    margin-top: 2.5rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    padding: 1.5rem;
+}
+
+.invoice-canvas__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.invoice-canvas canvas {
+    width: 100%;
+    max-width: 595px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+    background: #fff;
+}
+
+.invoice-canvas__actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.invoice-canvas__actions button {
+    background: #0057b8;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out;
+}
+
+.invoice-canvas__actions button:hover {
+    background: #00408a;
+}
+
 .checklist {
     list-style: none;
     padding: 0;

@@ -62,7 +62,8 @@ In der Web-App können Sie
 
 * Filialen, Kunden und Leistungen erfassen und einsehen,
 * Rechnungen mit beliebig vielen Positionen erstellen,
-* bestehende Rechnungen einsehen und als Nachschlagewerk nutzen.
+* bestehende Rechnungen einsehen und als Nachschlagewerk nutzen,
+* Rechnungen im Canvas-Format visualisieren und als PNG exportieren.
 
 Alle Eingaben werden sofort gespeichert, sodass Ihre Daten sowohl in der Weboberfläche
 als auch in der Kommandozeile verfügbar sind.
