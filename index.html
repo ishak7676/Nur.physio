@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Physio-Rechnung</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+      font-size: 11px;
+    }
+
+    header {
+      background: #006d77;
+      color: #fff;
+      padding: 6px 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header img {
+      height: 32px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    main {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .panel {
+      background: #fff;
+      padding: 8px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    #config-panel {
+      flex: 1 1 220px;
+      max-width: 260px;
+    }
+
+    #invoice-panel {
+      flex: 2 1 520px;
+      position: relative;
+    }
+
+    /* Logo auf der Rechnung */
+    #logo-on-invoice {
+      position: absolute;
+      top: 1.2cm;
+      left: 1.8cm;
+    }
+
+    #logo-on-invoice img {
+      height: 40px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 13px;
+    }
+
+    h3 {
+      margin-top: 6px;
+      margin-bottom: 3px;
+      font-size: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 2px 4px;
+      margin-top: 1px;
+      box-sizing: border-box;
+      font-size: 11px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 40px;
+    }
+
+    .row {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .row > * {
+      flex: 1;
+    }
+
+    button {
+      padding: 3px 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 10px;
+    }
+
+    button.primary {
+      background: #006d77;
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #e0e0e0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      font-size: 10px;
+    }
+
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 3px;
+      text-align: left;
+    }
+
+    table th {
+      background: #f0f0f0;
+    }
+
+    .right {
+      text-align: right;
+    }
+
+    .actions {
+      margin-top: 4px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    /* Adressblock für Sichtfenster */
+    #address-block {
+      margin-top: 1.5cm;
+      margin-left: 2.5cm;
+      margin-bottom: 1.0cm;
+    }
+
+    .sender-address {
+      font-size: 8px;
+      line-height: 1.2;
+      margin-bottom: 0.3cm;
+    }
+
+    .recipient-address {
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    #meta-block {
+      position: absolute;
+      top: 2cm;
+      right: 2.5cm;
+      font-size: 10px;
+      text-align: right;
+    }
+
+    /* optionale Blöcke: im Druck ausblenden, wenn leer */
+    .optional-block.empty-block { }
+    @media print {
+      .optional-block.empty-block {
+        display: none !important;
+      }
+    }
+
+    /* Fußzeile */
+    #fixed-footer {
+      margin-top: 10px;
+      border-top: 1px solid #ccc;
+      padding-top: 4px;
+      font-size: 9px;
+      line-height: 1.3;
+    }
+
+    /* Drucklayout */
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      body {
+        background: #fff;
+      }
+      header, #config-panel, .actions-screen-only {
+        display: none !important;
+      }
+      main {
+        padding: 0;
+      }
+      #invoice-panel {
+        box-shadow: none;
+        border-radius: 0;
+        padding: 1.8cm 1.8cm 1.5cm 1.8cm;
+      }
+      #logo-on-invoice {
+        top: 1cm;
+        left: 1.8cm;
+      }
+      #invoice-panel > h2 {
+        margin-top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <!-- Logo im Kopf -->
+  <img src="https://www.nur.physio/wp-content/uploads/2024/10/Logo-Kopie-von-TZ-2019.pdf-1.png" alt="Therapiezentrum Nur Logo">
+  <h1>Physio-Rechnung</h1>
+</header>
+
+<main>
+  <!-- Konfiguration (nur Rechnungsnummer) -->
+  <section id="config-panel" class="panel">
+    <h2>Einstellungen</h2>
+
+    <h3>Rechnungsnummer</h3>
+    <label for="rechnungsnummer">Rechnungsnummer (T-...)</label>
+    <input id="rechnungsnummer" readonly />
+
+    <div class="actions actions-screen-only">
+      <button class="secondary" type="button" onclick="generateInvoiceNumber()">
+        Neue Rechnungsnummer
+      </button>
+      <button class="secondary" type="button" onclick="resetCounters()">
+        Zähler zurücksetzen
+      </button>
+    </div>
+
+    <p style="font-size:8px;margin-top:4px;">
+      Zähler wird im Browser gespeichert.
+    </p>
+  </section>
+
+  <!-- Rechnung -->
+  <section id="invoice-panel" class="panel">
+    <!-- Logo auf der Rechnung -->
+    <div id="logo-on-invoice">
+      <img src="https://www.nur.physio/wp-content/uploads/2024/10/Logo-Kopie-von-TZ-2019.pdf-1.png" alt="Therapiezentrum Nur Logo">
+    </div>
+
+    <!-- Adressblock für Sichtfenster -->
+    <div id="address-block">
+      <div class="sender-address" id="senderAdresseZeile"></div>
+      <div class="recipient-address">
+        <div id="empfaengerNameZeile"></div>
+        <div id="empfaengerAdresseZeile"></div>
+      </div>
+    </div>
+
+    <!-- Rechnungsmeta -->
+    <div id="meta-block">
+      <div>Rechnungsdatum: <span id="anzeigeRechnungsDatum"></span></div>
+      <div>Rechnungs-Nr.: <span id="anzeigeRechnungsnummer"></span></div>
+    </div>
+
+    <!-- Überschrift -->
+    <h2 style="margin-top:4.6cm;">Rechnung</h2>
+
+    <!-- Kopf mit festen Praxisdaten -->
+    <strong>Physio Nur</strong><br />
+    <span>Tempelhofer Weg 62, 12347 Berlin</span><br />
+    <span>Tel.: 030 92 14 59 67 · Fax: 030 92 14 09 17 · E-Mail: tempelhof@nur.physio</span><br />
+    <span>Bankverbindung: Commerzbank Frankfurt am Main · IBAN: DE22 1204 0000 0073 1307 00</span><br />
+    <span>Steuer-Nr.: 16/315/02244</span>
+    <hr />
+
+    <div class="row">
+      <div>
+        <h3>Patient / Kostenträger</h3>
+        <label for="patientName">Name</label>
+        <input id="patientName" placeholder="Vor- und Nachname" oninput="updateAddressBlock()" />
+
+        <label for="patientAdresse">Adresse</label>
+        <textarea id="patientAdresse" placeholder="Straße, PLZ, Ort" oninput="updateAddressBlock()"></textarea>
+      </div>
+      <div>
+        <h3>Rechnungsdetails</h3>
+        <label for="rechnungsDatum">Rechnungsdatum</label>
+        <input type="date" id="rechnungsDatum" oninput="updateMetaBlock()" />
+
+        <label>Leistungszeitraum</label>
+        <div class="row">
+          <input type="date" id="leistungsVon" />
+          <input type="date" id="leistungsBis" />
+        </div>
+
+        <label for="verordnungsNummer">Verordnungs-Nr. / Rezept-Nr.</label>
+        <input id="verordnungsNummer" />
+      </div>
+    </div>
+
+    <p style="margin-top:6px;">
+      Hiermit stelle ich Ihnen folgende Leistungen in Rechnung:
+    </p>
+
+    <!-- Leistungen -->
+    <h3>Leistungen</h3>
+    <table id="leistungenTabelle">
+      <thead>
+      <tr>
+        <th>Pos.</th>
+        <th>Leistung / Beschreibung</th>
+        <th>Menge</th>
+        <th>Einzelpreis (€)</th>
+        <th>Gesamt (€)</th>
+        <th>Aktion</th>
+      </tr>
+      </thead>
+      <tbody id="leistungsBody"></tbody>
+    </table>
+
+    <div class="actions actions-screen-only">
+      <button class="secondary" type="button" onclick="addRow()">
+        + Leistung hinzufügen
+      </button>
+    </div>
+
+    <!-- Behandlungstermine -->
+    <h3>Behandlungstermine</h3>
+
+    <div class="row" style="margin-top:4px;">
+      <div style="flex:0 0 150px;">
+        <input type="date" id="terminDatumPicker" />
+      </div>
+      <div style="flex:0 0 auto;" class="actions-screen-only">
+        <button class="secondary" type="button" onclick="addTermin()">
+          Behandlungstermin hinzufügen
+        </button>
+      </div>
+    </div>
+
+    <label for="termineText">Behandlungstermine</label>
+    <textarea id="termineText" readonly></textarea>
+
+    <!-- Summen -->
+    <div class="row" style="margin-top:6px;">
+      <div id="zusatzObenBlock" class="optional-block">
+        <label for="zusatzTextOben">Zusatztext (oberhalb der Summe)</label>
+        <textarea id="zusatzTextOben" oninput="updateOptionalBlocks()"></textarea>
+      </div>
+      <div>
+        <table>
+          <tr>
+            <td class="right">Zwischensumme (netto):</td>
+            <td class="right"><span id="summeNetto">0,00</span> €</td>
+          </tr>
+          <tr>
+            <td class="right">MwSt. 0 %:</td>
+            <td class="right"><span id="summeMwst">0,00</span> €</td>
+          </tr>
+          <tr>
+            <td class="right"><strong>Gesamtbetrag (brutto):</strong></td>
+            <td class="right"><strong><span id="summeBrutto">0,00</span> €</strong></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div id="zusatzUntenBlock" class="optional-block" style="margin-top:4px;">
+      <label for="zusatzTextUnten">Fußtext (z.B. Zahlungsziel)</label>
+      <textarea id="zusatzTextUnten" oninput="updateOptionalBlocks()"></textarea>
+    </div>
+
+    <!-- feste Fußzeile -->
+    <div id="fixed-footer">
+      Physio Nur · Tempelhofer Weg 62 · 12347 Berlin ·
+      Tel.: 030 92 14 59 67 · Fax: 030 92 14 09 17 ·
+      E-Mail: tempelhof@nur.physio ·
+      Commerzbank Frankfurt am Main ·
+      IBAN: DE22 1204 0000 0073 1307 00 ·
+      Steuer-Nr.: 16/315/02244
+    </div>
+
+    <div class="actions actions-screen-only">
+      <button class="primary" type="button" onclick="updateHeader()">
+        Vorschau aktualisieren
+      </button>
+      <button class="primary" type="button" onclick="window.print()">
+        Drucken / als PDF speichern
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+  const MWST_SATZ = 0.0;
+  const COUNTER_KEY = "nur_physio_counter_T";
+
+  function loadCounter() {
+    const v = parseInt(localStorage.getItem(COUNTER_KEY), 10);
+    return isNaN(v) ? 1 : v;
+  }
+
+  function saveCounter(v) {
+    localStorage.setItem(COUNTER_KEY, String(v));
+  }
+
+  function generateInvoiceNumber() {
+    let c = loadCounter();
+    const nr = String(c).padStart(5, "0");
+    const invoiceNr = "T-" + nr;
+    document.getElementById("rechnungsnummer").value = invoiceNr;
+    document.getElementById("anzeigeRechnungsnummer").textContent = invoiceNr;
+    c++;
+    saveCounter(c);
+  }
+
+  function resetCounters() {
+    if (!confirm("Zähler wirklich zurücksetzen?")) return;
+    saveCounter(1);
+    alert("Zähler wurde zurückgesetzt.");
+  }
+
+  function formatDateForText(iso) {
+    if (!iso) return "";
+    const parts = iso.split("-");
+    if (parts.length !== 3) return "";
+    const [y, m, d] = parts;
+    return `${d}.${m}.${y}`;
+  }
+
+  function updateMetaBlock() {
+    const rd = document.getElementById("rechnungsDatum").value;
+    document.getElementById("anzeigeRechnungsDatum").textContent = formatDateForText(rd);
+  }
+
+  function updateAddressBlock() {
+    const praxisName = "Physio Nur";
+    const praxisAdresse = "Tempelhofer Weg 62, 12347 Berlin";
+    document.getElementById("senderAdresseZeile").textContent =
+      praxisName + ", " + praxisAdresse;
+
+    const patientName = document.getElementById("patientName").value || "";
+    const patientAdresse = (document.getElementById("patientAdresse").value || "").replace(/\n/g, ", ");
+    document.getElementById("empfaengerNameZeile").textContent = patientName;
+    document.getElementById("empfaengerAdresseZeile").textContent = patientAdresse;
+  }
+
+  function updateHeader() {
+    updateAddressBlock();
+    updateMetaBlock();
+    updateOptionalBlocks();
+  }
+
+  function updateOptionalBlocks() {
+    const oben = document.getElementById("zusatzObenBlock");
+    const unten = document.getElementById("zusatzUntenBlock");
+    if (oben) {
+      const v = document.getElementById("zusatzTextOben").value.trim();
+      oben.classList.toggle("empty-block", v === "");
+    }
+    if (unten) {
+      const v2 = document.getElementById("zusatzTextUnten").value.trim();
+      unten.classList.toggle("empty-block", v2 === "");
+    }
+  }
+
+  /* Leistungen */
+  function addRow() {
+    const tbody = document.getElementById("leistungsBody");
+    const index = tbody.children.length + 1;
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td class="right pos">${index}</td>
+      <td><input class="leistungText" /></td>
+      <td><input type="number" min="0" step="1" class="leistungMenge" value="1" /></td>
+      <td><input type="number" min="0" step="0.01" class="leistungPreis" value="0.00" /></td>
+      <td class="right"><span class="leistungGesamt">0,00</span></td>
+      <td><button type="button" class="secondary" onclick="removeRow(this)">X</button></td>
+    `;
+
+    tbody.appendChild(tr);
+
+    tr.querySelector(".leistungMenge").addEventListener("input", updateTotals);
+    tr.querySelector(".leistungPreis").addEventListener("input", updateTotals);
+
+    updateTotals();
+  }
+
+  function removeRow(btn) {
+    const tr = btn.closest("tr");
+    tr.parentNode.removeChild(tr);
+    document.querySelectorAll("#leistungsBody .pos").forEach((el, i) => {
+      el.textContent = i + 1;
+    });
+    updateTotals();
+  }
+
+  function updateTotals() {
+    let sumNetto = 0;
+    document.querySelectorAll("#leistungsBody tr").forEach(tr => {
+      const menge = parseFloat((tr.querySelector(".leistungMenge").value || "").replace(",", ".")) || 0;
+      const preis = parseFloat((tr.querySelector(".leistungPreis").value || "").replace(",", ".")) || 0;
+      const gesamt = menge * preis;
+      tr.querySelector(".leistungGesamt").textContent = gesamt.toFixed(2).replace(".", ",");
+      sumNetto += gesamt;
+    });
+
+    const mwst = sumNetto * MWST_SATZ;
+    const brutto = sumNetto + mwst;
+
+    document.getElementById("summeNetto").textContent = sumNetto.toFixed(2).replace(".", ",");
+    document.getElementById("summeMwst").textContent = mwst.toFixed(2).replace(".", ",");
+    document.getElementById("summeBrutto").textContent = brutto.toFixed(2).replace(".", ",");
+  }
+
+  /* Behandlungstermine: nur Kalender, kein zweites Datum, kein undefined */
+  function addTermin() {
+    const picker = document.getElementById("terminDatumPicker");
+    if (!picker) return;
+    const iso = picker.value;
+    const formatiert = formatDateForText(iso);
+    if (!formatiert) return;
+    const feld = document.getElementById("termineText");
+    feld.value = feld.value ? feld.value + ", " + formatiert : formatiert;
+  }
+
+  function init() {
+    const heute = new Date().toISOString().split("T")[0];
+    document.getElementById("rechnungsDatum").value = heute;
+    document.getElementById("terminDatumPicker").value = heute;
+
+    addRow();
+    updateHeader();
+    updateOptionalBlocks();
+  }
+
+  window.addEventListener("load", init);
+</script>
+</body>
+</html>
